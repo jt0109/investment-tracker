@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    environment:
+      MONGODB_URI: "mongodb://mongo:27017/investmentTracker"
+
+  mongo:
+    image: mongo
+    volumes:
+      - /Users/johntsai/Documents/Projects/investment-tracker/mongodb_data:/data/db
+    ports:
+      - "27017:27017"

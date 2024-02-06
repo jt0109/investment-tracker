@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('api:server');
+var http = require('http');
+
+const mongoose = require('mongoose');
+
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+
+/**
+ * 在 server.listen 之前檢查集合是否存在
+ */
+const checkInvestmentCollection = async () => {
+  const collections = await mongoose.connection.db.listCollections({ name: 'investments' }).toArray();
+  if (collections.length === 0) {
+    // 如果集合不存在，創建它
+    await mongoose.connection.db.createCollection('investments');
+    console.log('Investment collection created.');
+  }
+};
+
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+const startServer = () => {
+  server.listen(port);
+  server.on('error', onError);
+  server.on('listening', onListening);
+}
+
+
+// Mongo
+// 連接到 MongoDB
+// mongoose.connect('mongodb://localhost:27017/investmentTracker', { useNewUrlParser: true, useUnifiedTopology: true });
+// 在 Express 應用程式中的連線字串
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+
+// 等待 MongoDB 連接成功後再檢查集合
+mongoose.connection.once('open', () => {
+  checkInvestmentCollection().then(() => {
+    // 現在再啟動伺服器
+    startServer()
+  }).catch((error) => {
+    console.error('Error checking or creating Investment collection:', error);
+    process.exit(1); // 如果出現錯誤，終止應用
+  });
+});
+
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
