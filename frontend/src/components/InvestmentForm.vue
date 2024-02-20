@@ -29,6 +29,8 @@
 
 <script>
 import { ref, onMounted } from 'vue';
+import { fetchInvestments } from '../services/InvestmentService'
+import { formatDate } from '../utils/dateUtils'
 
 export default {
   setup() {
@@ -40,20 +42,18 @@ export default {
 
     const investmentsList = ref([]);
 
-    const fetchInvestments = () => {
-      fetch('/api/investments')
-        .then(response => response.json())
-        .then(data => {
-          console.log('Investments fetched:', data);
-          investmentsList.value = data;
-        })
-        .catch(error => {
-          console.error('Error fetching investments:', error);
-        });
+    const fetchInvestmentsData = async () => {
+      const apiUrl = '/api/investments'
+      try {
+        const data = await fetchInvestments(apiUrl);
+        investmentsList.value = data
+      } catch (error) {
+        console.error('Error fetching investments:', error);
+      }
     };
 
     onMounted(() => {
-      fetchInvestments(); // 在頁面載入時呼叫 fetchInvestments
+      fetchInvestmentsData(); // 在頁面載入時呼叫 fetchInvestments
     });
 
     const submitForm = () => {
@@ -70,18 +70,12 @@ export default {
         .then(response => response.json())
         .then(data => {
           console.log('Investment created:', data);
-          fetchInvestments()  // reload
+          fetchInvestmentsData()  // reload
         })
         .catch(error => {
           console.error('Error creating investment:', error);
           // 在這裡處理錯誤
         });
-    };
-
-    const formatDate = (dateString) => {
-      const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-      const date = new Date(dateString);
-      return date.toLocaleDateString('zh-TW', options);
     };
 
     return {
