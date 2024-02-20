@@ -1,5 +1,14 @@
 <template>
   <div>
+    <!-- 現有投資紀錄清單 -->
+    <h2>現有投資紀錄清單</h2>
+    <ul>
+      <li v-for="item in investmentsList" :key="item._id">
+        {{ formatDate(item.date) }} - {{ item.amount }} - {{ item.stock }}
+      </li>
+    </ul>
+
+    <!-- 新增投資紀錄 -->
     <h2>新增投資紀錄</h2>
     <form @submit.prevent="submitForm">
       <!-- 表單項目：日期、金額、股票名稱等 -->
@@ -19,7 +28,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 export default {
   setup() {
@@ -27,6 +36,24 @@ export default {
       date: '',
       amount: 0,
       stock: '',
+    });
+
+    const investmentsList = ref([]);
+
+    const fetchInvestments = () => {
+      fetch('/api/investments')
+        .then(response => response.json())
+        .then(data => {
+          console.log('Investments fetched:', data);
+          investmentsList.value = data;
+        })
+        .catch(error => {
+          console.error('Error fetching investments:', error);
+        });
+    };
+
+    onMounted(() => {
+      fetchInvestments(); // 在頁面載入時呼叫 fetchInvestments
     });
 
     const submitForm = () => {
@@ -51,9 +78,17 @@ export default {
         });
     };
 
+    const formatDate = (dateString) => {
+      const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+      const date = new Date(dateString);
+      return date.toLocaleDateString('zh-TW', options);
+    };
+
     return {
       investment,
+      investmentsList,
       submitForm,
+      formatDate,
     };
   },
 };
