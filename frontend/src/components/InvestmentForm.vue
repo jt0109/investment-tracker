@@ -70,7 +70,7 @@ export default {
         .then(response => response.json())
         .then(data => {
           console.log('Investment created:', data);
-          // 在這裡可以進行一些反饋或導航
+          fetchInvestments()  // reload
         })
         .catch(error => {
           console.error('Error creating investment:', error);
