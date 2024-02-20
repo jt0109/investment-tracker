@@ -29,7 +29,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { fetchInvestments } from '../services/InvestmentService'
+import { fetchInvestments, createInvestment } from '../services/InvestmentService'
 import { formatDate } from '../utils/dateUtils'
 
 export default {
@@ -56,26 +56,20 @@ export default {
       fetchInvestmentsData(); // 在頁面載入時呼叫 fetchInvestments
     });
 
-    const submitForm = () => {
+    const submitForm = async () => {
       // 在這裡呼叫 POST /api/investments API，使用 investment 數據
-      console.log('投資紀錄：', investment.value);
+      try {
+        const formData = investment.value;
+        console.log('投資紀錄：', formData);
 
-      fetch('/api/investments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(investment.value),
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Investment created:', data);
-          fetchInvestmentsData()  // reload
-        })
-        .catch(error => {
-          console.error('Error creating investment:', error);
-          // 在這裡處理錯誤
-        });
+        const apiUrl = '/api/investments'
+        await createInvestment(apiUrl, formData);
+        
+        // Optionally, you can refresh the investment list after creating a new investment
+        await fetchInvestmentsData();
+      } catch (error) {
+        console.error('Error creating investment:', error);
+      }
     };
 
     return {
