@@ -8,6 +8,7 @@ var logger = require('morgan');
 
 // Defaults
 const investmentRouter = require('./routes/investments');
+const dividendRouter = require('./routes/dividends');
 
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api/investments', investmentRouter);
+app.use('/api/dividends', dividendRouter);
 
 
 // catch 404 and forward to error handler
